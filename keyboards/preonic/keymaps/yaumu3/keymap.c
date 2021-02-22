@@ -19,8 +19,16 @@
 
 enum user_macro {
   UM_CTLE,
+  UM_EMLU,
+  // UM_EMLJ,
+  UM_KHRU,
+  // UM_KHRJ
 };
 #define M_CTLE MACROTAP(UM_CTLE) // LCTL or ESC + EN
+#define M_EMLU MACROTAP(UM_EMLU) // LOWER or EN (for US layout)
+// #define M_EMLJ MACROTAP(UM_EMLJ) // LOWER or EN (for JP layout)
+#define M_KHRU MACROTAP(UM_KHRU) // RAISE or JP (for US layout)
+// #define M_KHRJ MACROTAP(UM_KHRJ) // RAISE or JP (for JP layout)
 
 enum preonic_layers {
   _QWERTY,
@@ -55,7 +63,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSPC,
   M_CTLE,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,
   KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, RSFT_T(KC_ENT),
-  KC_LGUI, KC_LCTL, KC_LALT, KC_ESC,  LOWER,   KC_SPC,  KC_SPC,  RAISE,   KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT
+  KC_LGUI, KC_LCTL, KC_LALT, KC_ESC,  M_EMLU,  KC_SPC,  KC_SPC,  M_KHRU,  KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT
 ),
 
 /* LOWER
@@ -122,10 +130,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 )
 };
 
-static bool lower_pressed = false;
-static uint16_t lower_pressed_time = 0;
-static bool raise_pressed = false;
-static uint16_t raise_pressed_time = 0;
+uint32_t layer_state_set_user(uint32_t state) {
+  state = update_tri_layer_state(state, _RAISE, _LOWER, _ADJUST);
+  return state;
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case QWERTY:
@@ -134,51 +143,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       }
       return false;
       break;
-    case LOWER:
-      if (record->event.pressed) {
-        lower_pressed = true;
-        lower_pressed_time = record->event.time;
-        layer_on(_LOWER);
-        update_tri_layer(_LOWER, _RAISE, _ADJUST);
-      } else {
-        layer_off(_LOWER);
-        update_tri_layer(_LOWER, _RAISE, _ADJUST);
-        if (lower_pressed && (TIMER_DIFF_16(record->event.time, lower_pressed_time) < TAPPING_TERM)) {
-          register_code(KC_LANG2);  // macOS
-          register_code(KC_MHEN);   // Windows
-          unregister_code(KC_MHEN);
-          unregister_code(KC_LANG2);
-        }
-        lower_pressed = false;
-      }
-      return false;
-      break;
-    case RAISE:
-      if (record->event.pressed) {
-        raise_pressed = true;
-        raise_pressed_time = record->event.time;
-        layer_on(_RAISE);
-        update_tri_layer(_LOWER, _RAISE, _ADJUST);
-      } else {
-        layer_off(_RAISE);
-        update_tri_layer(_LOWER, _RAISE, _ADJUST);
-        if (raise_pressed && (TIMER_DIFF_16(record->event.time, raise_pressed_time) < TAPPING_TERM)) {
-          register_code(KC_LANG1);  // macOS
-          register_code(KC_HENK);   // Windows
-          unregister_code(KC_HENK);
-          unregister_code(KC_LANG1);
-        }
-        raise_pressed = false;
-      }
-      return false;
-      break;
-    default:
-      if (record->event.pressed) {
-        // reset the flags
-        lower_pressed = false;
-        raise_pressed = false;
-      }
-    break;
   }
   return true;
 };
@@ -188,6 +152,14 @@ const macro_t *action_get_macro(keyrecord_t *record, uint8_t id, uint8_t opt)
   switch(id) {
     case UM_CTLE:
     return MACRO_TAP_HOLD_MOD( record, MACRO(U(LCTL), T(ESC), T(MHEN), T(LANG2), END), LCTL );
+    case UM_EMLU:
+    return MACRO_TAP_HOLD_LAYER( record, MACRO(T(MHEN), T(LANG2), END), _LOWER );
+    // case UM_EMLJ:
+    // return MACRO_TAP_HOLD_LAYER( record, MACRO(T(MHEN), T(LANG2), END), _LOWER_JP );
+    case UM_KHRU:
+    return MACRO_TAP_HOLD_LAYER( record, MACRO(T(HENK), T(LANG1), END), _RAISE );
+    // case UM_KHRJ:
+    // return MACRO_TAP_HOLD_LAYER( record, MACRO(T(HENK), T(LANG1), END), _RAISE_JP );
   };
   return MACRO_NONE;
 }
