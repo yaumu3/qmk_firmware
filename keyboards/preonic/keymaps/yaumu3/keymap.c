@@ -130,8 +130,30 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 )
 };
 
+void matrix_init_user(void) {
+#ifdef RGBLIGHT_ENABLE
+  rgblight_sethsv(0, 0, 0);
+#endif
+}
+
 uint32_t layer_state_set_user(uint32_t state) {
   state = update_tri_layer_state(state, _RAISE, _LOWER, _ADJUST);
+#ifdef RGBLIGHT_ENABLE
+    switch (biton32(state)) {
+      case _RAISE:
+        rgblight_sethsv(HSV_ORANGE);
+        break;
+      case _LOWER:
+        rgblight_sethsv(HSV_CYAN);
+        break;
+      case _ADJUST:
+        rgblight_sethsv(HSV_RED);
+        break;
+      default: //  for any other layers, or the default layer
+        rgblight_sethsv(0, 0, 0);
+        break;
+    }
+#endif
   return state;
 }
 
