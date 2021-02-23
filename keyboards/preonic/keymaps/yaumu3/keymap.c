@@ -160,7 +160,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 void matrix_init_user(void) {
 #ifdef RGBLIGHT_ENABLE
-  rgblight_sethsv(0, 0, 0);
+  rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
+  rgblight_sethsv_noeeprom(0, 0, 0);
 #endif
 }
 
@@ -177,17 +178,21 @@ uint32_t layer_state_set_user(uint32_t state) {
     switch (biton32(state)) {
       case _RSE_US:
       case _RSE_JP:
-        rgblight_sethsv(HSV_ORANGE);
+        rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
+        rgblight_sethsv_noeeprom(HSV_ORANGE);
         break;
       case _LWR_US:
       case _LWR_JP:
-        rgblight_sethsv(HSV_CYAN);
+        rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
+        rgblight_sethsv_noeeprom(HSV_CYAN);
         break;
       case _ADJUST:
-        rgblight_sethsv(HSV_RED);
+        rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 3);
+        rgblight_sethsv_noeeprom(HSV_RED);
         break;
       default: //  for any other layers, or the default layer
-        rgblight_sethsv(0, 0, 0);
+        rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
+        rgblight_sethsv_noeeprom(0, 0, 0);
         break;
     }
 #endif
