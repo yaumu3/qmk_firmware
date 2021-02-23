@@ -6,7 +6,9 @@
 #include "quantum_keycodes.h"
 
 enum jtu_custom_keycodes {
-  JU_2 = SAFE_RANGE,
+  JU_GRV = SAFE_RANGE,
+  JU_TILD,
+  JU_2,
   JU_AT,
   JU_6,
   JU_CIRC,
@@ -30,7 +32,6 @@ enum jtu_custom_keycodes {
   JU_PIPE,
   JU_SCLN,
   JU_QUOT,
-  JU_GRV,
   JU_CAPS,
   JTU_SAFE_RANGE
 };
