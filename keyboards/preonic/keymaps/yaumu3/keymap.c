@@ -146,11 +146,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 )
 };
 
-void matrix_init_user(void) {
-#ifdef RGBLIGHT_ENABLE
-  rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
-  rgblight_sethsv_noeeprom(0, 0, 0);
-#endif
+void keyboard_pre_init_user(void) {
+    rgblight_disable();
+}
+
+void keyboard_post_init_user(void) {
+    rgblight_sethsv_noeeprom(0, 0, 0);
 }
 
 uint32_t layer_state_set_user(uint32_t state) {
