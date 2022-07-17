@@ -17,6 +17,8 @@
 #include QMK_KEYBOARD_H
 #include "muse.h"
 #include "jtu_custom_keycodes.h"
+#define SS_EISU SEND_STRING(SS_TAP(X_MHEN) SS_TAP(X_LANG2))
+#define SS_KANA SEND_STRING(SS_TAP(X_HENK) SS_TAP(X_LANG1))
 
 enum preonic_layers {
   _US,
@@ -31,11 +33,11 @@ enum preonic_layers {
 enum preonic_keycodes {
   US = JTU_SAFE_RANGE,
   JP,
-  M_CTLE, // LCTL or ESC + EN
-  M_EMLU, // LOWER or EN (for US layout)
-  M_EMLJ, // LOWER or EN (for JP layout)
-  M_KHRU, // RAISE or JP (for US layout)
-  M_KHRJ  // RAISE or JP (for JP layout)
+  CTL_ESC,
+  LWR_US,
+  LWR_JP,
+  RSE_US,
+  RSE_JP,
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -56,16 +58,16 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [_US] = LAYOUT_preonic_grid(
   KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_DEL,
   KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSPC,
-  M_CTLE,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,
+  CTL_ESC, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,
   KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, RSFT_T(KC_ENT),
-  KC_LGUI, KC_LCTL, KC_LALT, KC_ESC,  M_EMLU,  KC_SPC,  KC_SPC,  M_KHRU,  KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT
+  KC_LGUI, KC_LCTL, KC_LALT, KC_ESC,  LWR_US,  KC_SPC,  KC_SPC,  RSE_US,  KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT
 ),
 [_JP] = LAYOUT_preonic_grid(
   JU_GRV,  KC_1,    JU_2,    KC_3,    KC_4,    KC_5,    JU_6,    JU_7,    JU_8,    JU_9,    JU_0,    KC_DEL,
   KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSPC,
-  M_CTLE,  KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    JU_SCLN, JU_QUOT,
+  CTL_ESC, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    JU_SCLN, JU_QUOT,
   KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, RSFT_T(KC_ENT),
-  KC_LGUI, KC_LCTL, KC_LALT, KC_ESC,  M_EMLJ,  KC_SPC,  KC_SPC,  M_KHRJ,  KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT
+  KC_LGUI, KC_LCTL, KC_LALT, KC_ESC,  LWR_JP,  KC_SPC,  KC_SPC,  RSE_JP,  KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT
 ),
 
 /* LOWER
@@ -165,15 +167,15 @@ uint32_t layer_state_set_user(uint32_t state) {
   }
 #ifdef RGBLIGHT_ENABLE
     switch (biton32(state)) {
-      case _RSE_US:
-      case _RSE_JP:
-        rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
-        rgblight_sethsv_noeeprom(HSV_ORANGE);
-        break;
       case _LWR_US:
       case _LWR_JP:
         rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
         rgblight_sethsv_noeeprom(HSV_CYAN);
+        break;
+      case _RSE_US:
+      case _RSE_JP:
+        rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
+        rgblight_sethsv_noeeprom(HSV_ORANGE);
         break;
       case _ADJUST:
         rgblight_mode_noeeprom(RGBLIGHT_MODE_BREATHING + 3);
@@ -191,13 +193,17 @@ uint32_t layer_state_set_user(uint32_t state) {
 // result of process_record_user
 #define PROCESS_OVERRIDDEN_BEHAVIOR false
 #define PROCESS_USUAL_BEHAVIOR true
+static bool lctrl_pressed = false;
+static bool lower_pressed = false;
+static bool raise_pressed = false;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  static uint16_t hash_timer; // Timer to judge tap or hold
-
   // https://github.com/koktoh/jtu_custom_keycodes
   bool continue_process = process_record_user_jtu(keycode, record);
   if (continue_process == false) {
+    lctrl_pressed = false;
+    lower_pressed = false;
+    raise_pressed = false;
     return PROCESS_OVERRIDDEN_BEHAVIOR;
   }
 
@@ -212,61 +218,74 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         set_single_persistent_default_layer(_JP);
       }
       return PROCESS_OVERRIDDEN_BEHAVIOR;
-    case M_CTLE:
+    case CTL_ESC:
       if (record->event.pressed) {
-        hash_timer = timer_read();
+        lctrl_pressed = true;
         register_code(KC_LCTL);
       } else {
         unregister_code(KC_LCTL);
-        if (timer_elapsed(hash_timer) < TAPPING_TERM) {
-          SEND_STRING(SS_TAP(X_ESC) SS_TAP(X_MHEN) SS_TAP(X_LANG2));
+        if (lctrl_pressed) {
+          SEND_STRING(SS_TAP(X_ESC));
+          SS_EISU;
         }
+        lctrl_pressed = false;
       }
       return PROCESS_OVERRIDDEN_BEHAVIOR;
-    case M_EMLU:
+    case LWR_US:
       if (record->event.pressed) {
-        hash_timer = timer_read();
+        lower_pressed = true;
         layer_on(_LWR_US);
       } else {
         layer_off(_LWR_US);
-        if (timer_elapsed(hash_timer) < TAPPING_TERM) {
-          SEND_STRING(SS_TAP(X_MHEN) SS_TAP(X_LANG2));
+        if (lower_pressed) {
+          SS_EISU;
         }
+        lower_pressed = false;
       }
       return PROCESS_OVERRIDDEN_BEHAVIOR;
-    case M_EMLJ:
+    case LWR_JP:
       if (record->event.pressed) {
-        hash_timer = timer_read();
+        lower_pressed = true;
         layer_on(_LWR_JP);
       } else {
         layer_off(_LWR_JP);
-        if (timer_elapsed(hash_timer) < TAPPING_TERM) {
-          SEND_STRING(SS_TAP(X_MHEN) SS_TAP(X_LANG2));
+        if (lower_pressed) {
+          SS_EISU;
         }
+        lower_pressed = false;
       }
       return PROCESS_OVERRIDDEN_BEHAVIOR;
-    case M_KHRU:
+    case RSE_US:
       if (record->event.pressed) {
-        hash_timer = timer_read();
+        raise_pressed = true;
         layer_on(_RSE_US);
       } else {
         layer_off(_RSE_US);
-        if (timer_elapsed(hash_timer) < TAPPING_TERM) {
-          SEND_STRING(SS_TAP(X_HENK) SS_TAP(X_LANG1));
+        if (raise_pressed) {
+          SS_KANA;
         }
+        raise_pressed = false;
       }
       return PROCESS_OVERRIDDEN_BEHAVIOR;
-    case M_KHRJ:
+    case RSE_JP:
       if (record->event.pressed) {
-        hash_timer = timer_read();
+        raise_pressed = true;
         layer_on(_RSE_JP);
       } else {
         layer_off(_RSE_JP);
-        if (timer_elapsed(hash_timer) < TAPPING_TERM) {
-          SEND_STRING(SS_TAP(X_HENK) SS_TAP(X_LANG1));
+        if (raise_pressed) {
+          SS_KANA;
         }
+        raise_pressed = false;
       }
       return PROCESS_OVERRIDDEN_BEHAVIOR;
+    default:
+      if (record->event.pressed) {
+        lctrl_pressed = false;
+        lower_pressed = false;
+        raise_pressed = false;
+      }
+      break;
   }
   return PROCESS_USUAL_BEHAVIOR;
 };
