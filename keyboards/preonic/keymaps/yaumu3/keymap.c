@@ -18,19 +18,6 @@
 #include "muse.h"
 #include "jtu_custom_keycodes.h"
 
-enum user_macro {
-  UM_CTLE,
-  UM_EMLU,
-  UM_EMLJ,
-  UM_KHRU,
-  UM_KHRJ
-};
-#define M_CTLE MACROTAP(UM_CTLE) // LCTL or ESC + EN
-#define M_EMLU MACROTAP(UM_EMLU) // LOWER or EN (for US layout)
-#define M_EMLJ MACROTAP(UM_EMLJ) // LOWER or EN (for JP layout)
-#define M_KHRU MACROTAP(UM_KHRU) // RAISE or JP (for US layout)
-#define M_KHRJ MACROTAP(UM_KHRJ) // RAISE or JP (for JP layout)
-
 enum preonic_layers {
   _US,
   _JP,
@@ -44,10 +31,11 @@ enum preonic_layers {
 enum preonic_keycodes {
   US = JTU_SAFE_RANGE,
   JP,
-  LWR_US,
-  LWR_JP,
-  RSE_US,
-  RSE_JP
+  M_CTLE, // LCTL or ESC + EN
+  M_EMLU, // LOWER or EN (for US layout)
+  M_EMLJ, // LOWER or EN (for JP layout)
+  M_KHRU, // RAISE or JP (for US layout)
+  M_KHRJ  // RAISE or JP (for JP layout)
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -199,10 +187,17 @@ uint32_t layer_state_set_user(uint32_t state) {
   return state;
 }
 
+// result of process_record_user
+#define PROCESS_OVERRIDDEN_BEHAVIOR false
+#define PROCESS_USUAL_BEHAVIOR true
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  static uint16_t hash_timer; // Timer to judge tap or hold
+
+  // https://github.com/koktoh/jtu_custom_keycodes
   bool continue_process = process_record_user_jtu(keycode, record);
   if (continue_process == false) {
-    return false;
+    return PROCESS_OVERRIDDEN_BEHAVIOR;
   }
 
   switch (keycode) {
@@ -210,31 +205,67 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       if (record->event.pressed) {
         set_single_persistent_default_layer(_US);
       }
-      return false;
-      break;
+      return PROCESS_OVERRIDDEN_BEHAVIOR;
     case JP:
       if (record->event.pressed) {
         set_single_persistent_default_layer(_JP);
       }
-      return false;
-      break;
+      return PROCESS_OVERRIDDEN_BEHAVIOR;
+    case M_CTLE:
+      if (record->event.pressed) {
+        hash_timer = timer_read();
+        register_code(KC_LCTL);
+      } else {
+        unregister_code(KC_LCTL);
+        if (timer_elapsed(hash_timer) < TAPPING_TERM) {
+          SEND_STRING(SS_TAP(X_ESC) SS_TAP(X_MHEN) SS_TAP(X_LANG2));
+        }
+      }
+      return PROCESS_OVERRIDDEN_BEHAVIOR;
+    case M_EMLU:
+      if (record->event.pressed) {
+        hash_timer = timer_read();
+        layer_on(_LWR_US);
+      } else {
+        layer_off(_LWR_US);
+        if (timer_elapsed(hash_timer) < TAPPING_TERM) {
+          SEND_STRING(SS_TAP(X_MHEN) SS_TAP(X_LANG2));
+        }
+      }
+      return PROCESS_OVERRIDDEN_BEHAVIOR;
+    case M_EMLJ:
+      if (record->event.pressed) {
+        hash_timer = timer_read();
+        layer_on(_LWR_JP);
+      } else {
+        layer_off(_LWR_JP);
+        if (timer_elapsed(hash_timer) < TAPPING_TERM) {
+          SEND_STRING(SS_TAP(X_MHEN) SS_TAP(X_LANG2));
+        }
+      }
+      return PROCESS_OVERRIDDEN_BEHAVIOR;
+    case M_KHRU:
+      if (record->event.pressed) {
+        hash_timer = timer_read();
+        layer_on(_RSE_US);
+      } else {
+        layer_off(_RSE_US);
+        if (timer_elapsed(hash_timer) < TAPPING_TERM) {
+          SEND_STRING(SS_TAP(X_HENK) SS_TAP(X_LANG1));
+        }
+      }
+      return PROCESS_OVERRIDDEN_BEHAVIOR;
+    case M_KHRJ:
+      if (record->event.pressed) {
+        hash_timer = timer_read();
+        layer_on(_RSE_JP);
+      } else {
+        layer_off(_RSE_JP);
+        if (timer_elapsed(hash_timer) < TAPPING_TERM) {
+          SEND_STRING(SS_TAP(X_HENK) SS_TAP(X_LANG1));
+        }
+      }
+      return PROCESS_OVERRIDDEN_BEHAVIOR;
   }
-  return true;
+  return PROCESS_USUAL_BEHAVIOR;
 };
-
-const macro_t *action_get_macro(keyrecord_t *record, uint8_t id, uint8_t opt)
-{
-  switch(id) {
-    case UM_CTLE:
-    return MACRO_TAP_HOLD_MOD( record, MACRO(U(LCTL), T(ESC), T(MHEN), T(LANG2), END), LCTL );
-    case UM_EMLU:
-    return MACRO_TAP_HOLD_LAYER( record, MACRO(T(MHEN), T(LANG2), END), _LWR_US );
-    case UM_EMLJ:
-    return MACRO_TAP_HOLD_LAYER( record, MACRO(T(MHEN), T(LANG2), END), _LWR_JP );
-    case UM_KHRU:
-    return MACRO_TAP_HOLD_LAYER( record, MACRO(T(HENK), T(LANG1), END), _RSE_US );
-    case UM_KHRJ:
-    return MACRO_TAP_HOLD_LAYER( record, MACRO(T(HENK), T(LANG1), END), _RSE_JP );
-  };
-  return MACRO_NONE;
-}
