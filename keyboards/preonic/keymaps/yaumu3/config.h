@@ -1,6 +1,7 @@
 #pragma once
 
 #define AUDIO_INIT_DELAY // https://github.com/qmk/qmk_firmware/issues/14242
+#define AUDIO_DAC_SAMPLE_MAX 2047U
 #ifdef AUDIO_ENABLE
     #define STARTUP_SONG SONG(PREONIC_SOUND)
     // #define STARTUP_SONG SONG(NO_SOUND)
