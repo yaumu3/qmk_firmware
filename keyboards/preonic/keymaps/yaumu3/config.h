@@ -37,3 +37,6 @@
 
 #define TAPPING_TERM 175
 #define AUDIO_CLICKY
+
+// Activate by pressing Left Shift + Right Shift
+#define BOTH_SHIFTS_TURNS_ON_CAPS_WORD
