@@ -1,4 +1,3 @@
-SRC += muse.c \
-    jtu_custom_keycodes.c
+SRC += muse.c
 
 COMMAND_ENABLE = no
