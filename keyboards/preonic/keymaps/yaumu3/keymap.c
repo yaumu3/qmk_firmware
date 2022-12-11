@@ -156,7 +156,7 @@ void keyboard_post_init_user(void) {
     rgblight_sethsv_noeeprom(0, 0, 0);
 }
 
-uint32_t layer_state_set_user(uint32_t state) {
+layer_state_t layer_state_set_user(layer_state_t state) {
   switch (biton32(default_layer_state)) {
     case _US:
       state = update_tri_layer_state(state, _RSE_US, _LWR_US, _ADJUST);
