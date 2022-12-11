@@ -16,28 +16,21 @@
 
 #include QMK_KEYBOARD_H
 #include "muse.h"
-#include "jtu_custom_keycodes.h"
 #define SS_EISU SEND_STRING(SS_TAP(X_INT5) SS_TAP(X_LNG2))
 #define SS_KANA SEND_STRING(SS_TAP(X_INT4) SS_TAP(X_LNG1))
 
 enum preonic_layers {
-  _US,
-  _JP,
-  _LWR_US,
-  _LWR_JP,
-  _RSE_US,
-  _RSE_JP,
+  _QWERTY,
+  _LOWER,
+  _RAISE,
   _ADJUST
 };
 
 enum preonic_keycodes {
-  US = JTU_SAFE_RANGE,
-  JP,
+  QWERTY = SAFE_RANGE,
+  LOWER,
+  RAISE,
   CTL_ESC,
-  LWR_US,
-  LWR_JP,
-  RSE_US,
-  RSE_JP,
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -55,19 +48,12 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * | LGUI | LCTL | LALT | ESC  |LOWER*|     SPC     |RAISE*| LEFT | DOWN |  UP  | RGHT |
  * `-----------------------------------------------------------------------------------'
  */
-[_US] = LAYOUT_preonic_grid(
-  KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_DEL,
-  KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSPC,
-  CTL_ESC, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, KC_QUOT,
-  KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, RSFT_T(KC_ENT),
-  KC_LGUI, KC_LCTL, KC_LALT, KC_ESC,  LWR_US,  KC_SPC,  KC_SPC,  RSE_US,  KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT
-),
-[_JP] = LAYOUT_preonic_grid(
-  JU_GRV,  KC_1,    JU_2,    KC_3,    KC_4,    KC_5,    JU_6,    JU_7,    JU_8,    JU_9,    JU_0,    KC_DEL,
-  KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,    KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_BSPC,
-  CTL_ESC, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,    KC_H,    KC_J,    KC_K,    KC_L,    JU_SCLN, JU_QUOT,
-  KC_LSFT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,    KC_N,    KC_M,    KC_COMM, KC_DOT,  KC_SLSH, RSFT_T(KC_ENT),
-  KC_LGUI, KC_LCTL, KC_LALT, KC_ESC,  LWR_JP,  KC_SPC,  KC_SPC,  RSE_JP,  KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT
+[_QWERTY] = LAYOUT_preonic_grid(
+  KC_GRV,  KC_1,    KC_2,    KC_3,   KC_4,  KC_5,    KC_6,    KC_7,   KC_8,    KC_9,    KC_0,    KC_DEL,
+  KC_TAB,  KC_Q,    KC_W,    KC_E,   KC_R,  KC_T,    KC_Y,    KC_U,   KC_I,    KC_O,    KC_P,    KC_BSPC,
+  CTL_ESC, KC_A,    KC_S,    KC_D,   KC_F,  KC_G,    KC_H,    KC_J,   KC_K,    KC_L,    KC_SCLN, KC_QUOT,
+  KC_LSFT, KC_Z,    KC_X,    KC_C,   KC_V,  KC_B,    KC_N,    KC_M,   KC_COMM, KC_DOT,  KC_SLSH, RSFT_T(KC_ENT),
+  KC_LGUI, KC_LCTL, KC_LALT, KC_ESC, LOWER, KC_SPC,  KC_SPC,  RAISE,  KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT
 ),
 
 /* LOWER
@@ -83,18 +69,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * | LGUI | LCTL | LALT | ESC  |      |             |      | HOME | PGDN | PGUP | END  |
  * `-----------------------------------------------------------------------------------'
  */
-[_LWR_US] = LAYOUT_preonic_grid(
+[_LOWER] = LAYOUT_preonic_grid(
   KC_F11,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F12,
   KC_TILD, KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC, KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_TRNS,
   _______, _______, _______, _______, _______, _______, KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, KC_UNDS, KC_PLUS,
   KC_TRNS, _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_PIPE, KC_RSFT,
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, _______, _______, _______, _______, KC_HOME, KC_PGDN, KC_PGUP, KC_END
-),
-[_LWR_JP] = LAYOUT_preonic_grid(
-  KC_F11,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F12,
-  JU_TILD, KC_EXLM, JU_AT,   KC_HASH, KC_DLR,  KC_PERC, JU_CIRC, JU_AMPR, JU_ASTR, JU_LPRN, JU_RPRN, KC_TRNS,
-  _______, _______, _______, _______, _______, _______, KC_LEFT, KC_DOWN, KC_UP,   KC_RGHT, JU_UNDS, JU_PLUS,
-  KC_TRNS, _______, _______, _______, _______, _______, _______, _______, _______, _______, JU_PIPE, KC_RSFT,
   KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, _______, _______, _______, _______, KC_HOME, KC_PGDN, KC_PGUP, KC_END
 ),
 
@@ -111,18 +90,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * | LGUI | LCTL | LALT | ESC  |      |             |      | HOME | PGDN | PGUP | END  |
  * `-----------------------------------------------------------------------------------'
  */
-[_RSE_US] = LAYOUT_preonic_grid(
+[_RAISE] = LAYOUT_preonic_grid(
   KC_F11,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F12,
   KC_GRV,  KC_1,    KC_2,    KC_3,    KC_4,    KC_5,    KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    KC_TRNS,
   _______, _______, KC_LBRC, KC_LCBR, KC_LPRN, _______, _______, KC_RPRN, KC_RCBR, KC_RBRC, KC_MINS, KC_EQL,
   KC_TRNS, _______, _______, _______, _______, _______, _______, _______, _______, _______, KC_BSLS, KC_TRNS,
-  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, _______, _______, _______, _______, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS
-),
-[_RSE_JP] = LAYOUT_preonic_grid(
-  KC_F11,  KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F12,
-  JU_GRV,  KC_1,    JU_2,    KC_3,    KC_4,    KC_5,    JU_6,    JU_7,    JU_8,    JU_9,    JU_0,    KC_TRNS,
-  _______, _______, JU_LBRC, JU_LCBR, JU_LPRN, _______, _______, JU_RPRN, JU_RCBR, JU_RBRC, JU_MINS, JU_EQL,
-  KC_TRNS, _______, _______, _______, _______, _______, _______, _______, _______, _______, JU_BSLS, KC_TRNS,
   KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, _______, _______, _______, _______, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS
 ),
 
@@ -134,7 +106,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |------+------+------+------+------+-------------+------+------+------+------+------|
  * |      | AUDIO|      |      |      |      | BR-  | VOL- | VOL+ | BR+  |      |      |
  * |------+------+------+------+------+------|------+------+------+------+------+------|
- * | CAPS |      |      |CLICKY|  US  |      |      |  JP  |      |      |      |  LED |
+ * | CAPS |      |      |CLICKY|      |      |      |      |      |      |      |  LED |
  * |------+------+------+------+------+------+------+------+------+------+------+------|
  * |      |      |      |      |      |             |      |      | LED- | LED+ |      |
  * `-----------------------------------------------------------------------------------'
@@ -143,7 +115,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   EE_CLR,  _______, _______, _______, _______, _______, _______, _______, _______, _______, _______, _______,
   _______, _______, _______, _______, QK_BOOT, _______, _______, _______, _______, _______, KC_PSCR, _______,
   _______, AU_TOG,  _______, _______, _______, _______, KC_BRID, KC_VOLD, KC_VOLU, KC_BRIU, _______, _______,
-  KC_CAPS, _______, _______, CK_TOGG, US,      _______, _______, JP,      _______, _______, _______, RGB_TOG,
+  KC_CAPS, _______, _______, CK_TOGG, QWERTY,  _______, _______, _______, _______, _______, _______, RGB_TOG,
   _______, _______, _______, _______, _______, _______, _______, _______, _______, RGB_VAD, RGB_VAI, _______
 )
 };
@@ -158,22 +130,17 @@ void keyboard_post_init_user(void) {
 
 layer_state_t layer_state_set_user(layer_state_t state) {
   switch (biton32(default_layer_state)) {
-    case _US:
-      state = update_tri_layer_state(state, _RSE_US, _LWR_US, _ADJUST);
-      break;
-    case _JP:
-      state = update_tri_layer_state(state, _RSE_JP, _LWR_JP, _ADJUST);
+    case _QWERTY:
+      state = update_tri_layer_state(state, _RAISE, _LOWER, _ADJUST);
       break;
   }
 #ifdef RGBLIGHT_ENABLE
     switch (biton32(state)) {
-      case _LWR_US:
-      case _LWR_JP:
+      case _LOWER:
         rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
         rgblight_sethsv_noeeprom(HSV_CYAN);
         break;
-      case _RSE_US:
-      case _RSE_JP:
+      case _RAISE:
         rgblight_mode_noeeprom(RGBLIGHT_MODE_STATIC_LIGHT);
         rgblight_sethsv_noeeprom(HSV_ORANGE);
         break;
@@ -198,24 +165,10 @@ static bool lower_pressed = false;
 static bool raise_pressed = false;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  // https://github.com/koktoh/jtu_custom_keycodes
-  bool continue_process = process_record_user_jtu(keycode, record);
-  if (continue_process == false) {
-    lctrl_pressed = false;
-    lower_pressed = false;
-    raise_pressed = false;
-    return PROCESS_OVERRIDDEN_BEHAVIOR;
-  }
-
   switch (keycode) {
-    case US:
+    case QWERTY:
       if (record->event.pressed) {
-        set_single_persistent_default_layer(_US);
-      }
-      return PROCESS_OVERRIDDEN_BEHAVIOR;
-    case JP:
-      if (record->event.pressed) {
-        set_single_persistent_default_layer(_JP);
+        set_single_persistent_default_layer(_QWERTY);
       }
       return PROCESS_OVERRIDDEN_BEHAVIOR;
     case CTL_ESC:
@@ -231,48 +184,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         lctrl_pressed = false;
       }
       return PROCESS_OVERRIDDEN_BEHAVIOR;
-    case LWR_US:
+    case LOWER:
       if (record->event.pressed) {
         lower_pressed = true;
-        layer_on(_LWR_US);
+        layer_on(_LOWER);
       } else {
-        layer_off(_LWR_US);
+        layer_off(_LOWER);
         if (lower_pressed) {
           SS_EISU;
         }
         lower_pressed = false;
       }
       return PROCESS_OVERRIDDEN_BEHAVIOR;
-    case LWR_JP:
-      if (record->event.pressed) {
-        lower_pressed = true;
-        layer_on(_LWR_JP);
-      } else {
-        layer_off(_LWR_JP);
-        if (lower_pressed) {
-          SS_EISU;
-        }
-        lower_pressed = false;
-      }
-      return PROCESS_OVERRIDDEN_BEHAVIOR;
-    case RSE_US:
+    case RAISE:
       if (record->event.pressed) {
         raise_pressed = true;
-        layer_on(_RSE_US);
+        layer_on(_RAISE);
       } else {
-        layer_off(_RSE_US);
-        if (raise_pressed) {
-          SS_KANA;
-        }
-        raise_pressed = false;
-      }
-      return PROCESS_OVERRIDDEN_BEHAVIOR;
-    case RSE_JP:
-      if (record->event.pressed) {
-        raise_pressed = true;
-        layer_on(_RSE_JP);
-      } else {
-        layer_off(_RSE_JP);
+        layer_off(_RAISE);
         if (raise_pressed) {
           SS_KANA;
         }
